@@ -67,32 +67,66 @@ cat << EOF > /usr/local/etc/v2ray/config.json
                   "path": "/$ID-trojan"
                 }
             }
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 8080,
+            "protocol": "dokodemo-door",
+            "settings": {
+              "address": "0.0.0.0",
+              "port": 80,
+              "network": "tcp",
+              "followRedirect": false
+            },
+            "sniffing": {
+              "enabled": true,
+              "destOverride": ["http"]
+            },
+            "tag": "unblock-80"
+        },
+        {
+            "listen": "0.0.0.0",
+            "port": 8443,
+            "protocol": "dokodemo-door",
+            "settings": {
+              "address": "0.0.0.0",
+              "port": 443,
+              "network": "tcp",
+              "followRedirect": false
+            },
+            "sniffing": {
+              "enabled": true,
+              "destOverride": ["tls"]
+            },
+            "tag": "unblock-443"
         }
     ],
     "routing": {
-        "domainStrategy": "IPIfNonMatch",
-        "domainMatcher": "mph",
+        "domainStrategy": "IPOnDemand",
         "rules": [
-           {
+            {
               "type": "field",
-              "protocol": [
-                 "bittorrent"
-              ],
-              "domains": [
-                  "geosite:cn",
-                  "geosite:category-ads-all"
-              ],
-              "outboundTag": "blocked"
-           }
+              "inboundTag": ["unblock-80", "unblock-443"],
+              "outboundTag": "direct"
+            }
         ]
     },
     "outbounds": [
         {
-            "protocol": "freedom"
+          "protocol": "freedom",
+          "settings": {
+            "domainStrategy": "UseIPv4"
+          },
+          "tag": "IPv4-out"
         },
         {
-            "tag": "blocked",
-            "protocol": "blackhole"
+          "tag": "direct",
+          "protocol": "freedom",
+          "settings": {}
+        },
+        {
+          "protocol": "blackhole",
+          "tag": "blackhole-out"
         }
     ],
     "dns": {
